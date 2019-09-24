@@ -15,13 +15,19 @@
 #include "exynos4412.dtsi"
 #include <dt-bindings/gpio/gpio.h>
 
+// mz8023yt@163.com 20180321 begin >>> [1/11] add usb net driver
+#include <dt-bindings/usb4640/usb4640.h>
+// mz8023yt@163.com 20180321 end   <<< [1/11] add usb net driver
+
 / {
 	model = "FriendlyARM TINY4412 board based on Exynos4412";
 	compatible = "friendlyarm,tiny4412", "samsung,exynos4412", "samsung,exynos4";
 
 	chosen {
 		stdout-path = &serial_0;
-		bootargs = "root=/dev/ram0 rw rootfstype=ext4 console=ttySAC0,115200 init=/linuxrc earlyprintk";
+// mz8023yt@163.com 20180321 begin >>> [2/11] add usb net driver
+		bootargs = "root=/dev/ram0 rw rootfstype=ext4 console=ttySAC0,115200 ethmac=1C:6F:65:34:51:7E init=/linuxrc";
+// mz8023yt@163.com 20180321 end   <<< [2/11] add usb net driver
 	};
 
 	memory {
@@ -30,7 +36,9 @@
 
 	leds {
 		compatible = "gpio-leds";
-
+// mz8023yt@163.com 20180403 begin >>> [1/2] realize the led driver
+		status = "disabled";
+// mz8023yt@163.com 20180403 end   <<< [1/2] realize the led driver
 		led1 {
 			label = "led1";
 			gpios = <&gpm4 0 GPIO_ACTIVE_LOW>;
@@ -69,6 +77,50 @@
 			clock-frequency = <24000000>;
 		};
 	};
+
+// mz8023yt@163.com 20180321 begin >>> [3/11] add usb net driver
+	usb-hub {
+		compatible = "smsc,usb4640";
+		reset-gpios = <&gpm2 4 GPIO_ACTIVE_LOW>;
+		initial-mode = <USB4640_MODE_HUB>;
+	};
+// mz8023yt@163.com 20180321 end   <<< [3/11] add usb net driver
+
+// mz8023yt@163.com 20180403 begin >>> [2/2] realize the led driver
+	maziot_leds {
+		compatible = "maziot,leds";
+		reg = <0x110002e0 0x10>;
+		tiny4412,gpio = <&gpm4 0 GPIO_ACTIVE_HIGH &gpm4 1 GPIO_ACTIVE_HIGH>;
+		pinctrl-names = "default", "gpio_sleep", "gpio_active";
+		pinctrl-0 = <&led_gpio_default>;
+		pinctrl-1 = <&led_gpio_sleep>;
+		pinctrl-2 = <&led_gpio_active>;
+	};
+};
+
+&pinctrl_1 {
+	led_gpio_default: led_gpio_default {
+		samsung,pins = "gpm4-0", "gpm4-1";
+		samsung,pin-function = <1>;
+		samsung,pin-pud = <1>;
+		samsung,pin-drv = <2>;
+	};
+
+	led_gpio_sleep: led_gpio_sleep {
+		samsung,pins = "gpm4-0", "gpm4-1";
+		samsung,pin-function = <1>;
+		samsung,pin-pud = <0>;
+		samsung,pin-drv = <0>;
+	};
+
+	led_gpio_active: led_gpio_active {
+		samsung,pins = "gpm4-0", "gpm4-1";
+		samsung,pin-function = <1>;
+		samsung,pin-pud = <3>;
+		samsung,pin-drv = <3>;
+	};
+// mz8023yt@163.com 20180403 end   <<< [2/2] realize the led driver
+
 };
 
 &rtc {
@@ -79,7 +131,9 @@
 	bus-width = <4>;
 	pinctrl-0 = <&sd2_clk &sd2_cmd &sd2_cd &sd2_bus4>;
 	pinctrl-names = "default";
+// mz8023yt@163.com 20180321 begin >>> [1/1] disable sd controller
 	status = "disabled";
+// mz8023yt@163.com 20180321 end   <<< [1/1] disable sd controller
 };
 
 &serial_0 {
@@ -97,3 +151,35 @@
 &serial_3 {
 	status = "okay";
 };
+
+// mz8023yt@163.com 20180321 begin >>> [4/11] add usb net driver
+&exynos_usbphy {
+	status = "okay";
+};
+
+&ehci {
+	status = "okay";
+	port@0 {
+		status = "okay";
+	};
+
+	port@1 {
+		status = "okay";
+	};
+
+	port@2 {
+		status = "okay";
+	};
+};
+
+&ohci {
+	status = "okay";
+	port@0 {
+		status = "okay";
+	};
+};
+
+&hsotg {
+	status = "okay";
+};
+// mz8023yt@163.com 20180321 end   <<< [4/11] add usb net driver
